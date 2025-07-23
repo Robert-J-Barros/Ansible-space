@@ -13,7 +13,7 @@
 - name: Salvar token em arquivo local para uso posterior
   copy:
     content: "{{ worker_token.stdout }}"
-    dest: "/home/blocktime/space_oracle/Ansible/roles/space/files/worker_token.txt"
+    dest: "/home/blocktime/Ansible-space/roles/space/files/worker_token.txt"
   delegate_to: localhost
   run_once: true
   tags: install_install_docker_swarm_master
