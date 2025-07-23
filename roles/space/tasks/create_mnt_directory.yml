@@ -1,0 +1,48 @@
+#criar repositorio /mnt/client/app && /mnt/client/sessions
+- name: Criar diretório /mnt/nfs_client/{{item.client}}/app
+  file:
+    path: /mnt/nfs_client/{{item.client}}/app
+    state: directory
+    #owner: root
+    #group: root
+    mode: '0777'
+    recurse: yes
+  with_items: 
+     - "{{ newclient }}"
+    
+
+- name: Criar diretório /mnt/nfs_client/{{item.client}}/sessions
+  file:
+     path: /mnt/nfs_client/{{item.client}}/sessions
+     state: directory
+     #owner: root
+     #group: root
+     mode: '0777'
+     recurse: yes
+  with_items: 
+      - "{{ newclient }}"
+
+
+- name: Criar diretório /mnt/nfs_client/{{item.client}}/sessions
+  file:
+     path: /mnt/nfs_client/{{item.client}}/storage
+     state: directory
+     #owner: root
+     #group: root
+     mode: '0777'
+     recurse: yes
+  with_items: 
+      - "{{ newclient }}"
+  
+#criar repositorio de cliente em devops/docker/app/cliente
+- name: Criar diretório /home/ubuntu/projetos/casino-v2/devops/docker/app/
+  file:
+     path:  /home/ubuntu/projetos/casino-v2/devops/docker/app/{{item.client}}
+     state: directory
+     owner: ubuntu
+     group: ubuntu
+     mode: '0755'
+     recurse: yes
+  with_items: 
+      - "{{ newclient }}"
+

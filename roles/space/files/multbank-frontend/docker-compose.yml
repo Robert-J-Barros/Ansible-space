@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  multbank-frontend:
+    image: 10.0.15.184:5000/{{item.project}}:{{item.image_version}}
+    networks:
+      - ingress
+      - backend
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.role == worker
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.multbank-frontend.rule: "Host(`multbank.app`)"
+        traefik.http.routers.multbank-frontend.entrypoints: "websecure"
+        traefik.http.routers.multbank-frontend.tls: "true"
+        traefik.http.routers.multbank-frontend.priority: 10
+        traefik.http.routers.multbank-frontend.service: "multbank-frontend"
+        traefik.http.services.multbank-frontend.loadbalancer.server.port: "5173"
+        traefik.http.services.multbank-frontend.loadbalancer.sticky.cookie: "true"
+        traefik.docker.network: "ingress-routing"
+        # Middleware para redirecionamento de HTTP para HTTPS
+        traefik.http.middlewares.https-redirect.redirectscheme.scheme: "https"
+        traefik.http.routers.multbank-frontend-redirect.rule: "Host(`multbank.app`)"
+        traefik.http.routers.multbank-frontend-redirect.entrypoints: "web"
+        traefik.http.routers.multbank-frontend-redirect.middlewares: "https-redirect"
+        traefik.http.routers.multbank-frontend-redirect.priority: 1
+
+        # (Opcional) Cache headers para assets estáticos
+        traefik.http.middlewares.static-cache.headers.customResponseHeaders.Cache-Control: "public, max-age=31536000"
+        traefik.http.routers.multbank-frontend.middlewares: "static-cache"
+
+    # Se quiser servir localmente os arquivos, descomente abaixo:
+    # volumes:
+    #   - /mnt/multbank-frontend/dist:/app/dist
+
+volumes:
+  teddypix_storage:
+  session_data:
+
+networks:
+  ingress:
+    external: true
+    name: ingress-routing
+  backend:
+    driver: overlay

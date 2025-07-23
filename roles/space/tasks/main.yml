@@ -1,0 +1,64 @@
+- name: Instalar lamp
+  import_tasks: install_lamp.yml
+  tags: install_lamp
+
+- name: Install SSL Certificate
+  import_tasks: install_certbot.yml
+  tags: install_certificate
+
+- name: Install Zabbix agent
+  import_tasks: install_zabbix_agent.yml
+  tags: install_zabbix_agent
+
+- name: Install Mysql
+  import_tasks: install_mysql.yml
+  tags: install_mysql
+
+- name: install_docker
+  import_tasks: install_docker.yml
+  tags: install_docker
+
+- name: apply_iptables
+  import_tasks: apply_iptables.yml
+  tags: apply_iptables
+
+- name: install_docker_swarm_master
+  import_tasks: install_docker_swarm_master.yml
+  tags: install_docker_swarm_master
+
+- name: install_docker_swarm_worker
+  import_tasks: install_docker_swarm_worker.yml
+  tags: install_docker_swarm_worker
+
+- name: create_mnt_directory
+  import_tasks: create_mnt_directory.yml
+  tags: create_mnt_directory
+
+- name: apply_docker_registry_local
+  import_tasks: apply_docker_registry_local.yml
+  tags: apply_docker_registry_local
+
+
+- name: apply_php_artisan_ferraripg
+  import_tasks: php_artisan_start_command.yml
+  tags: apply_php_artisan_ferraripg
+
+- name: create_new_client
+  import_tasks: 001.create_new_client.yml
+  tags: create_new_client
+
+- name: deploy_multbank_frontend
+  import_tasks: 002.deploy_multbank_frontend.yml
+  tags: deploy_multbank_frontend
+
+- name: deploy_multbank_backend
+  import_tasks: 003.deploy_multbank_backend.yml
+  tags: deploy_multbank_backend
+
+- name: install_mongodb
+  import_tasks: install_mongodb.yml
+  tags: install_mongodb
+
+- name: deploy casino
+  import_tasks: 004.deploy_casino.yml
+  tags: deploy_casino

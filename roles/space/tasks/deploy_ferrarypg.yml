@@ -1,0 +1,23 @@
+    - name: Build da imagem usando diretório principal do projeto
+      community.docker.docker_image:
+        name: "{{ item.service_name }}"
+        tag: "{{ item.version }}"
+        source: build
+        build:
+          path: "{{ item.project_root }}"
+          dockerfile: "{{ item.dockerfile_path | regex_replace('^' ~ item.project_root ~ '/', '') }}"
+      loop: "{{ ferraripg }}"
+
+    - name: Tag para o registry privado
+      command: >
+        docker tag {{ item.service_name }}:{{ item.version }}
+        {{ item.registry_host }}/{{ item.service_name }}:{{ item.version }}
+      loop: "{{ ferraripg }}"
+
+    - name: Push da imagem para o registry
+      community.docker.docker_image:
+        name: "{{ item.registry_host }}/{{ item.service_name }}"
+        tag: "{{ item.version }}"
+        push: true
+        source: local
+      loop: "{{ ferraripg }}"

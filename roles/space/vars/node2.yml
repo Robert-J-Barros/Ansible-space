@@ -1,0 +1,26 @@
+private_ip: 10.0.108.202
+
+artisan_commands:
+  - php artisan session:table
+  - php artisan cache:table
+  - php artisan migrate --force
+  - php artisan config:clear
+  - php artisan config:cache
+
+newclient:
+ # - { client: "betoption", database: "betoption", domain: "betoption", image_version: "0.0.6", database_user: "betoption", database_password: "jP22n9DTgULF" }
+ #- { client: "australia777", database: "australia777", domain: "australia777.bet", image_version: "0.0.1", database_user: "australia777", database_password: "jP22n9DTgULF" }
+ # - { client: "alfagames777", database: "alfagames777", domain: "alfagames777.bet", image_version: "0.0.1", database_user: "alfagames777", database_password: "jP22n9DTgULF" }
+ # - { client: "vemprojogo", database: "vemprojogo", domain: "vemprojogo.bet", image_version: "0.0.1", database_user: "vemprojogo", database_password: "jP22n9DTgULF" }
+ # - { client: "nacionalmoney", database: "nacionalmoney", domain: "nacionalmoney.bet", image_version: "0.0.1", database_user: "nacionalmoney", database_password: "jP22n9DTgULF" }
+ # - { client: "shark777", database: "shark777", domain: "shark-777.com", image_version: "0.0.1", database_user: "shark777", database_password: "jP22n9DTgULF" }
+ # - { client: "alcaponebet", database: "alcaponebet", domain: "alcaponebet.com", image_version: "0.0.1", database_user: "alcaponebet", database_password: "jP22n9DTgULF" }
+ # - { client: "apostaxr", database: "apostaxr", domain: "apostaxr.bet", image_version: "0.0.1", database_user: "apostaxr", database_password: "jP22n9DTgULF" }
+ # - { client: "7win", database: "7win", domain: "7-win.bet", image_version: "0.0.1", database_user: "7win", database_password: "jP22n9DTgULF" }
+ #- { client: "galeradabet", database: "galeradabet", domain: "galeradabet.bet", image_version: "0.0.1", database_user: "galeradabet", database_password: "jP22n9DTgULF" }
+ # - { client: "ferraripg", database: "ferraripg", domain: "ferraripg.bet", image_version: "0.0.1", database_user: "ferraripg", database_password: "jP22n9DTgULF" }
+ # - { client: "sharkplay", database: "sharkplay", domain: "sharkplay.bet", image_version: "0.0.1", database_user: "sharkplay", database_password: "jP22n9DTgULF" }
+  - { client: "nobrebet", database: "nobrebet", domain: "nobrebet.tech", image_version: "0.0.2", database_user: "nobrebet", database_password: "jP22n9DTgULF" }
+
+  
+  

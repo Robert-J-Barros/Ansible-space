@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  registry:
+    image: registry:2
+    ports:
+      - target: 5000
+        published: 5000
+        protocol: tcp
+        mode: host
+    volumes:
+      - registry_data:/var/lib/registry
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        condition: any
+
+volumes:
+  registry_data:

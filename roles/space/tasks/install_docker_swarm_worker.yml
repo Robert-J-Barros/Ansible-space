@@ -1,0 +1,20 @@
+- name: Ler token do arquivo local (se não usar vars_files)
+  slurp:
+    src: /home/robert/space_oracle/Ansible/roles/space/files/worker_token.txt
+  register: token_file
+  delegate_to: localhost
+  run_once: true
+  tags: join_swarm_worker
+
+- name: Definir token como variável para todos os workers
+  set_fact:
+    swarm_worker_token: "{{ token_file.content | b64decode }}"
+  run_once: true
+  tags: join_swarm_worker
+
+- name: Entrar no Swarm como worker
+  shell: docker swarm join --token {{ swarm_worker_token }} {{ hostvars['master']['private_ip'] }}:2377
+  register: join_result
+  failed_when: join_result.rc != 0 and "'already part of a swarm' not in join_result.stderr"
+  changed_when: "'This node joined a swarm' in join_result.stdout or 'already part of a swarm' in join_result.stderr"
+  tags: join_swarm_worker

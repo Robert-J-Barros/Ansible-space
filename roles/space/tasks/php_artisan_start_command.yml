@@ -1,0 +1,13 @@
+- name: Obter containers do serviço ferrarypg
+  shell: docker ps --filter "name=ferraripg" --format "{{ '{{.Names}}' }}"
+  register: ferrarypg_containers
+  changed_when: false
+
+- name: Executar comandos Artisan em cada container
+  vars:
+    containers: "{{ ferrarypg_containers.stdout_lines }}"
+  shell: docker exec {{ item.0 }} {{ item.1 }}
+  loop: "{{ containers | product(artisan_commands) | list }}"
+  loop_control:
+    label: "{{ item.0 }} → {{ item.1 }}"
+

@@ -1,0 +1,25 @@
+- name: Importar chave pública do MongoDB
+  apt_key:
+    url: https://www.mongodb.org/static/pgp/server-6.0.asc
+    state: present
+
+- name: Adicionar repositório do MongoDB
+  apt_repository:
+    repo: "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse"
+    state: present
+    filename: mongodb-org-6.0
+
+- name: Atualizar cache do apt
+  apt:
+    update_cache: yes
+
+- name: Instalar MongoDB
+  apt:
+    name: mongodb-org
+    state: present
+
+- name: Garantir que MongoDB está iniciado e habilitado
+  service:
+    name: mongod
+    state: started
+    enabled: yes

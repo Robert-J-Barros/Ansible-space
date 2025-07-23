@@ -1,0 +1,79 @@
+- name: Executar git reset --hard HEAD
+  ansible.builtin.command:
+    cmd: git reset --hard HEAD
+  args:
+    chdir: /home/ubuntu/projetos/{{ item.project }}
+  with_items: "{{ multbank_frontend }}"
+
+- name: Criar pasta .ssh para root
+  ansible.builtin.file:
+    path: /root/.ssh
+    state: directory
+    mode: '0700'
+
+- name: Copiar chave SSH para root
+  ansible.builtin.copy:
+    src: ~/.ssh/id_rsa
+    dest: /root/.ssh/id_rsa
+    mode: '0600'
+
+- name: Adicionar github.com ao known_hosts do root
+  ansible.builtin.known_hosts:
+    name: github.com
+    key: "{{ lookup('pipe', 'ssh-keyscan github.com') }}"
+    path: /root/.ssh/known_hosts
+    state: present
+    hash_host: false
+
+- name: Garantir que github.com está no known_hosts
+  ansible.builtin.known_hosts:
+    name: github.com
+    key: "{{ lookup('pipe', 'ssh-keyscan github.com') }}"
+    path: /home/ubuntu/.ssh/known_hosts
+    state: present
+    hash_host: false
+
+
+- name: Garantir que o repositório está atualizado
+  ansible.builtin.git:
+    repo: "{{ item.project_github }}"
+    dest: "/home/ubuntu/projetos/{{ item.project }}"
+    version: main
+    update: yes
+    key_file: "/home/ubuntu/.ssh/id_rsa"  # se estiver usando chave SSH
+    #state: present
+  with_items: "{{ multbank_frontend }}"
+
+- name: Build da imagem Docker
+  community.docker.docker_image:
+    name: "{{ item.project }}"
+    tag: "{{ item.image_version }}"
+    source: build
+    build:
+      path: "/home/ubuntu/projetos/{{ item.project}}"
+      dockerfile: "./Dockerfile"
+  with_items: "{{ multbank_frontend }}"
+
+- name: Tag da imagem para o repositório privado
+  command: >
+    docker tag {{ item.project }}:{{ item.image_version }}
+    10.0.15.184:5000/{{ item.project }}:{{ item.image_version }}
+  with_items: "{{ multbank_frontend  }}"
+
+- name: Push da imagem para o repositório
+  command: >
+    docker push 10.0.15.184:5000/{{ item.project }}:{{ item.image_version }}
+  with_items: "{{ multbank_frontend }}"
+  
+- name: send docker-compose.yml
+  template:
+    src: "files/multbank-frontend/docker-compose.yml"
+    dest: "/home/ubuntu/{{ item.project }}/docker-compose.yml"
+  with_items: 
+    - "{{ multbank_frontend }}"
+  tags: install_lamp
+
+- name: iniciar compose
+  ansible.builtin.shell: |
+    docker service update --force --image 10.0.15.184:5000/{{item.project}}:{{item.image_version}}  multbank-frontend_multbank-frontend
+  with_items: "{{ multbank_frontend }}"

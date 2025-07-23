@@ -1,0 +1,60 @@
+    - name: Adiciona repositório PPA do PHP 8.4 (Ondřej Surý)
+      ansible.builtin.apt_repository:
+        repo: ppa:ondrej/php
+        state: present
+      tags: install_lamp
+    - name: apt-get update
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install LAMP Packages
+      apt: name={{ item }} update_cache=yes state=latest
+      loop: [ 'apache2', 'php8.4', 'php8.4-fpm', 'php8.4-mysql', 'libapache2-mod-php' ]
+      tags: install_lamp
+
+    - name: Install PHP Extensions
+      apt: name={{ item }} update_cache=yes state=latest
+      loop:
+        - "{{ php_modules }}"
+      tags: install_lamp
+
+    ### APACHE2
+    - name: Create document root
+      file:
+        path: "/var/www/{{ item.file_http_host }}"
+        state: directory
+        owner: "www-data"
+        group: "www-data"
+        mode: '0755'
+      with_items: "{{ sites }}"
+      tags: install_lamp
+
+    - name: Add .htaccess
+      template:
+        src: "files/.htaccess"
+        dest: "/var/www/{{ item.file_http_host }}/.htaccess"
+      with_items: "{{ sites }}"
+      tags: install_lamp
+    
+    - name: Up a virtual host
+      template:
+        src: "files/apache2.conf"
+        dest: "/etc/apache2/sites-enabled/{{ item.file_http_host }}.conf"
+      with_items: "{{ sites }}"
+      tags: install_lamp
+
+    - name: enable PHP module on Apache
+      ansible.builtin.command:
+        cmd: "a2enmod php8.4"
+      tags: install_lamp
+
+    - name: enable PHP-FPM on Apache
+      ansible.builtin.command:
+        cmd: "a2enconf php8.4-fpm"
+      tags: install_lamp
+    - name: enable PHP-FPM on Apache
+      ansible.builtin.command:
+        cmd: "a2enmod proxy_fcgi setenvif"
+      tags: install_lamp
+
+   

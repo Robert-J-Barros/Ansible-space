@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  ferraripg:
+    image: 10.0.175.230:5000/ferraripg:0.1.5
+
+    networks:
+      - ingress
+      - ferraripg
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.ferraripg.rule: "Host(`ferraripg.bet`)"
+        traefik.http.routers.ferraripg.entrypoints: "websecure"
+        traefik.http.routers.ferraripg.tls: "true"
+        traefik.http.routers.ferraripg.priority: 20
+        traefik.http.routers.ferraripg.service: "ferraripg"
+        traefik.http.services.ferraripg.loadbalancer.server.port: "80"
+        traefik.docker.network: "ingress-routing"
+    volumes:
+      - /mnt/ferraripg/app:/var/www/html/storage/app/public
+      - /mnt/ferraripg/sessions:/var/www/html/storage/framework/sessions/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  ferraripg_storage:
+  session_data:
+
+networks:
+  ingress:
+    external: true
+    name: ingress-routing
+  ferraripg:
+    driver: overlay

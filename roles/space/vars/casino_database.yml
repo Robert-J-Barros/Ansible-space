@@ -1,0 +1,23 @@
+private_ip: 10.0.93.224
+
+
+database:
+  - {db_name: 'teddypix', db_user: 'teddypix', db_password: 'f83E}2l928vf9]m6' }
+  - {db_name: 'ferrarypg', db_user: 'teddypix', db_password: 'f83E}2l928vf9]m6' }
+  - {db_name: 'sharkplay', db_user: 'teddypix', db_password: 'f83E}2l928vf9]m6' }
+  - {db_name: 'alcaponebet', db_user: 'teddypix', db_password: 'f83E}2l928vf9]m6' }
+  - { db_name: 'alcaponebet', db_user: 'alcaponebet', db_password: 'F9v#l3Rx10zA@a2L' }
+  - { db_name: 'australia777', db_user: 'australia777', db_password: 'P!t5XuZ7w%gC1mKq' }
+  - { db_name: 'apost4legal', db_user: 'apost4legal', db_password: 'Y82#mWfL$6Nc3oUx' }
+  - { db_name: 'lefort777', db_user: 'lefort777', db_password: 'Vm@3EoT&15LbK9q!' }
+  - { db_name: 'apostaxr', db_user: 'apostaxr', db_password: 'T*1JxH29$MdPf7oR' }
+  - { db_name: 'playgame777', db_user: 'playgame777', db_password: 'R@6LpYv!o4XaTb81' }
+  - { db_name: 'vemvegas777', db_user: 'vemvegas777', db_password: 'L!pK94#eWoXcFz32' }
+  - { db_name: 'galeradabet', db_user: 'galeradabet', db_password: 'E3v#zYRp@10Mxu7L' }
+  - { db_name: 'ferraripg', db_user: 'ferraripg', db_password: 'J#zP7gX!WoQ29LmR' }
+  - { db_name: 'blessed', db_user: 'blessed', db_password: 'N!o6KxYr42Wg@TmE' }
+  - { db_name: 'cashplay777', db_user: 'cashplay777', db_password: 'Z@qF9vX4Lo12#pWc' }
+  - { db_name: 'rangerover777', db_user: 'rangerover777', db_password: 'K%rXWo18LzJ#ay07' }
+  - { db_name: 'coringa', db_user: 'coringa', db_password: 'Qe@vLzP9Xo3#tWu1' }
+  - { db_name: 'sharkplay', db_user: 'sharkplay', db_password: 'W!x3FoLp#97TqZmE' }
+  - { db_name: 'Vemprojogo', db_user: 'Vemprojogo', db_password: 'Bp@LgXv0!z21TqRu' }

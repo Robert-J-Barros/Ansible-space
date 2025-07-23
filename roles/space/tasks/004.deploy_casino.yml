@@ -1,0 +1,98 @@
+- name: Garantir que github.com está no known_hosts
+  ansible.builtin.known_hosts:
+    name: github.com
+    key: "{{ lookup('pipe', 'ssh-keyscan github.com') }}"
+    path: /home/ubuntu/.ssh/known_hosts
+    state: present
+    hash_host: false
+
+- name: Executar git reset --hard HEAD
+  ansible.builtin.command:
+    cmd: git reset --hard HEAD
+  args:
+    chdir: /home/ubuntu/projetos/{{ item.project }}
+  with_items: "{{ casino }}"
+
+
+- name: Garantir que o repositório está atualizado
+  ansible.builtin.git:
+    repo: "{{ item.project_github }}"
+    dest: "/home/ubuntu/projetos/{{ item.project }}"
+    version: main
+    update: yes
+    key_file: "/home/ubuntu/.ssh/id_rsa"  # se estiver usando chave SSH
+    #state: present
+  with_items: "{{ casino  }}"
+
+- name: send Dockerfile
+  template:
+    src: "files/new_client/Dockerfile"
+    dest: "/home/ubuntu/projetos/casino-v2/devops/docker/app/{{item.client}}/Dockerfile"
+  with_items: 
+      - "{{ casino }}"
+  tags: install_lamp
+
+#add git .ignore
+- name: Adiciona entrada ao .dockerignore para manter .env do client
+  ansible.builtin.lineinfile:
+    path: /home/ubuntu/projetos/casino-v2/.dockerignore
+    line: "!devops/docker/app/{{ item.client }}/.env"
+    insertafter: EOF
+    create: yes
+  with_items: "{{ casino }}"
+
+- name: send docker-compose.yml
+  template:
+    src: "files/new_client/docker-compose.yml"
+    dest: "/home/ubuntu/{{ item.client }}/docker-compose.yml"
+  with_items: 
+    - "{{ casino }}"
+  tags: install_lamp
+
+- name: Build da imagem Docker
+  community.docker.docker_image:
+    name: "{{ item.client }}"
+    tag: "{{ item.image_version }}"
+    source: build
+    build:
+      path: "/home/ubuntu/projetos/casino-v2"
+      dockerfile: "devops/docker/app/{{ item.client }}/Dockerfile"
+  with_items: "{{ casino }}"
+
+- name: Tag da imagem para o repositório privado
+  command: >
+    docker tag {{ item.client }}:{{ item.image_version }}
+    10.0.15.184:5000/{{ item.client }}:{{ item.image_version }}
+  with_items: "{{ casino }}"
+
+- name: Push da imagem para o repositório
+  command: >
+    docker push 10.0.15.184:5000/{{ item.client }}:{{ item.image_version }}
+  with_items: "{{ casino }}"
+
+#criar repositorio na home /home/ubuntu/cliente
+- name: Criar diretório /home/ubuntu/{{item.client}}
+  file:
+     path: /home/ubuntu/{{item.client}}
+     state: directory
+     owner: ubuntu
+     group: ubuntu
+     mode: '0755'
+     recurse: yes
+  with_items: 
+      - "{{ casino }}"
+
+#sendo docker-compose
+- name: send docker-compose.yml
+  template:
+    src: "files/new_client/docker-compose.yml"
+    dest: "/home/ubuntu/{{ item.client }}/docker-compose.yml"
+  with_items: 
+    - "{{ casino }}"
+  tags: install_lamp
+
+- name: iniciar compose
+  ansible.builtin.shell: |
+    docker stack deploy -c /home/ubuntu/{{item.client}}/docker-compose.yml {{item.client}}
+  with_items: "{{ casino }}"
+

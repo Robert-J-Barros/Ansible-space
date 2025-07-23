@@ -1,0 +1,71 @@
+- name: Installing MySQL and dependencies
+  package:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - mysql-server
+    - mysql-client 
+    - python3-mysqldb
+    - libmysqlclient-dev
+  tags: install_mysql
+
+- name: Start and enable MySQL service
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+  tags: install_mysql
+
+- name: Enable remote login to MySQL
+  lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: '^bind-address'
+    line: 'bind-address = 0.0.0.0'
+    backup: yes
+  tags: install_mysql
+  
+- name: Create MySQL admin user with remote access and full privileges
+  mysql_user:
+    name: admin
+    password: "Developer2@23"
+    host: "%"
+    priv: "*.*:ALL,GRANT"
+    state: present
+    login_user: root
+  tags: install_mysql
+
+- name: Flush MySQL privileges
+  mysql_user:
+    name: admin
+    host: "%"
+    check_implicit_admin: yes
+    state: present
+    login_user: root
+    update_password: on_create
+  notify: Restart mysql
+  tags: install_mysql
+
+- name: Restart mysql
+  ansible.builtin.service:
+    name: mysql
+    state: restarted
+  tags: install_mysql
+
+
+#- name: Create MySQL databases
+#  mysql_db:
+#    name: "{{ item.db_name }}"
+#    state: present
+#  loop: "{{ database }}"
+#  tags: install_mysql
+
+#- name: Create MySQL users
+#  mysql_user:
+#    name: "{{ item.db_user }}"
+#    password: "{{ item.db_password }}"
+#    priv: "{{ item.db_name }}.*:ALL"
+#    host: "%"
+#    state: present
+#  loop: "{{ database }}"
+#  tags: install_mysql

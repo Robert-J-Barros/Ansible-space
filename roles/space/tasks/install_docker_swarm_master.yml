@@ -1,0 +1,19 @@
+- name: Inicializar Swarm no master
+  shell: docker swarm init --advertise-addr {{ private_ip }}
+  register: swarm_init
+  failed_when: swarm_init.rc != 0 and ('already part of a swarm' not in swarm_init.stderr)
+  changed_when: "'Swarm initialized' in swarm_init.stdout"
+  tags: install_install_docker_swarm_master
+
+- name: Obter token de worker
+  shell: docker swarm join-token worker -q
+  register: worker_token
+  tags: install_install_docker_swarm_master
+
+- name: Salvar token em arquivo local para uso posterior
+  copy:
+    content: "{{ worker_token.stdout }}"
+    dest: "/home/robert/space_oracle/Ansible/roles/space/files/worker_token.txt"
+  delegate_to: localhost
+  run_once: true
+  tags: install_install_docker_swarm_master

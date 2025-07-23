@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  {{item.client}}:
+    image: 10.0.15.184:5000/{{item.client}}:{{item.image_version}}
+
+    networks:
+      - ingress
+      - {{item.client}}
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.{{item.client}}.rule: "Host(`{{item.domain}}`)"
+        traefik.http.routers.{{item.client}}.entrypoints: "websecure"
+        traefik.http.routers.{{item.client}}.tls: "true"
+        traefik.http.routers.{{item.client}}.priority: 20
+        traefik.http.routers.{{item.client}}.service: "{{item.client}}"
+        traefik.http.services.{{item.client}}.loadbalancer.server.port: "80"
+        traefik.http.services.{{item.client}}.loadbalancer.sticky.cookie: "true"
+        traefik.http.middlewares.https-redirect.redirectscheme.scheme: "https"
+        traefik.http.routers.{{item.client}}-redirect.rule: "Host(`{{item.domain}}`)"
+        traefik.http.routers.{{item.client}}-redirect.entrypoints: "web"
+        traefik.http.routers.{{item.client}}-redirect.middlewares: "https-redirect"
+        traefik.http.routers.{{item.client}}-redirect.priority: 1
+
+        traefik.docker.network: "ingress-routing"
+    volumes:
+      # Persistência de sessões Laravel (opcional)
+      - /mnt/nfs_client/{{item.client}}/sessions:/var/www/html/storage/framework/sessions
+      - /mnt/nfs_client/{{item.client}}/app:/var/www/html/storage/app/public
+      - /mnt/nfs_client/{{item.client}}/app:/var/www/html/public/storage
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+    command: >
+      sh -c "
+        if [ ! -L /var/www/html/public/storage ]; then
+          php artisan storage:link;
+        fi &&
+        apache2-foreground
+      "
+
+
+volumes:
+  {{item.client}}_storage:
+  session_data:
+
+networks:
+  ingress:
+    external: true
+    name: ingress-routing
+  {{item.client}}:
+    driver: overlay

@@ -1,0 +1,45 @@
+- name: Servidor space- node1
+  hosts: node1
+  become: yes
+  vars_files:
+    - roles/space/vars/node1.yml
+  roles:
+    - space
+- name: Servidor space- node2
+  hosts: node2
+  become: yes
+  vars_files:
+    - roles/space/vars/node2.yml
+  roles:
+    - space
+- name: Servidor space- node3
+  hosts: node3
+  become: yes
+  vars_files:
+    - roles/space/vars/node3.yml
+  roles:
+    - space
+
+- name: Servidor space- master
+  hosts: master
+  become: yes
+  vars_files:
+    - roles/space/vars/master.yml
+  roles:
+    - space
+
+- name: Servidor space - casino database
+  hosts: casino_database
+  become: yes
+  vars_files:
+    - roles/space/vars/casino_database.yml
+  roles:
+    - space
+
+- name: Servidor space - bank database
+  hosts: bank_database
+  become: yes
+  vars_files:
+    - roles/space/vars/bank_database.yml
+  roles:
+    - space

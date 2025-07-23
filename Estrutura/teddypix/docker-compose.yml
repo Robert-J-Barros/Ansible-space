@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  teddypix:
+    image: 10.0.175.230:5000/teddypix-app:0.2.3
+    networks:
+      - ingress
+      - backend
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.teddypix.rule: "Host(`teddypix.bet`)"
+        traefik.http.routers.teddypix.entrypoints: "websecure"
+        traefik.http.routers.teddypix.tls: "true"
+        traefik.http.routers.teddypix.priority: 10
+        traefik.http.routers.teddypix.service: "teddypix"
+        traefik.http.services.teddypix.loadbalancer.server.port: "80"
+        traefik.http.services.teddypix.loadbalancer.sticky.cookie: "true"
+
+          # Middleware para redirecionamento de HTTP para HTTPS
+        traefik.http.middlewares.https-redirect.redirectscheme.scheme: "https"
+
+  # Router de redirecionamento (apenas Traefik, sem passar para o app)
+        traefik.http.routers.teddypix-redirect.rule: "Host(`teddypix.bet`)"
+        traefik.http.routers.teddypix-redirect.entrypoints: "web"
+        traefik.http.routers.teddypix-redirect.middlewares: "https-redirect"
+        traefik.http.routers.teddypix-redirect.priority: 1
+    volumes:
+      - /mnt/app:/var/www/html/storage/app/public
+      - /mnt/sessions:/var/www/html/storage/framework/sessions/
+volumes:
+
+  teddypix_storage:
+  session_data:
+
+networks:
+  ingress:
+    external: true
+    name: ingress-routing
+  backend:
+    driver: overlay

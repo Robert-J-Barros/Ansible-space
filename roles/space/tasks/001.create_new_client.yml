@@ -1,0 +1,147 @@
+#criar repositorio /mnt/client/app && /mnt/client/sessions
+- name: Criar diretório /mnt/nfs_client/{{item.client}}/app
+  file:
+    path: /mnt/nfs_client/{{item.client}}/app
+    state: directory
+    #owner: root
+    #group: root
+    mode: '0777'
+    recurse: yes
+  with_items: 
+     - "{{ newclient }}"
+    
+
+- name: Criar diretório /mnt/nfs_client/{{item.client}}/sessions
+  file:
+     path: /mnt/nfs_client/{{item.client}}/sessions
+     state: directory
+     #owner: root
+     #group: root
+     mode: '0777'
+     recurse: yes
+  with_items: 
+      - "{{ newclient }}"
+  
+#criar repositorio de cliente em devops/docker/app/cliente
+- name: Criar diretório /home/ubuntu/projetos/casino-v2/devops/docker/app/
+  file:
+     path:  /home/ubuntu/projetos/casino-v2/devops/docker/app/{{item.client}}
+     state: directory
+     owner: ubuntu
+     group: ubuntu
+     mode: '0755'
+     recurse: yes
+  with_items: 
+      - "{{ newclient }}"
+
+#editar .env e dockerfile
+- name: send .env
+  template:
+    src: "files/new_client/.env"
+    dest: "/home/ubuntu/projetos/casino-v2/devops/docker/app/{{ item.client }}/.env"
+  with_items: 
+    - "{{ newclient }}"
+  tags: install_lamp
+
+- name: send Dockerfile
+  template:
+    src: "files/new_client/Dockerfile"
+    dest: "/home/ubuntu/projetos/casino-v2/devops/docker/app/{{item.client}}/Dockerfile"
+  with_items: 
+      - "{{ newclient }}"
+  tags: install_lamp
+
+#add git .ignore
+- name: Adiciona entrada ao .dockerignore para manter .env do client
+  ansible.builtin.lineinfile:
+    path: /home/ubuntu/projetos/casino-v2/.dockerignore
+    line: "!devops/docker/app/{{ item.client }}/.env"
+    insertafter: EOF
+    create: yes
+  with_items: "{{ newclient }}"
+
+#realizar build da imagem
+- name: Build da imagem Docker
+  community.docker.docker_image:
+    name: "{{ item.client }}"
+    tag: "{{ item.image_version }}"
+    source: build
+    build:
+      path: "/home/ubuntu/projetos/casino-v2"
+      dockerfile: "devops/docker/app/{{ item.client }}/Dockerfile"
+  with_items: "{{ newclient }}"
+
+- name: Tag da imagem para o repositório privado
+  command: >
+    docker tag {{ item.client }}:{{ item.image_version }}
+    10.0.15.184:5000/{{ item.client }}:{{ item.image_version }}
+  with_items: "{{ newclient }}"
+
+- name: Push da imagem para o repositório
+  command: >
+    docker push 10.0.15.184:5000/{{ item.client }}:{{ item.image_version }}
+  with_items: "{{ newclient }}"
+
+#criar repositorio na home /home/ubuntu/cliente
+- name: Criar diretório /home/ubuntu/{{item.client}}
+  file:
+     path: /home/ubuntu/{{item.client}}
+     state: directory
+     owner: ubuntu
+     group: ubuntu
+     mode: '0755'
+     recurse: yes
+  with_items: 
+      - "{{ newclient }}"
+
+#sendo docker-compose
+- name: send docker-compose.yml
+  template:
+    src: "files/new_client/docker-compose.yml"
+    dest: "/home/ubuntu/{{ item.client }}/docker-compose.yml"
+  with_items: 
+    - "{{ newclient }}"
+  tags: install_lamp
+
+
+
+## Criar banco de dados
+- name: Criar banco de dados remotamente
+  become: true
+  become_user: root
+  delegate_to: localhost
+  community.mysql.mysql_db:
+    name: "{{ item.database }}"
+    state: present
+    login_host: "{{ hostvars['casino_database'].ansible_host }}"
+    login_user: "admin"
+    login_password: "Developer2@23"
+  with_items: "{{ newclient }}"
+  
+- name: Criar usuário e permissões
+  community.mysql.mysql_user:
+    name: "{{ item.database_user }}"
+    password: "{{ item.database_password }}"
+    priv: "{{ item.database }}.*:ALL"
+    host: "%"
+    state:  present
+    login_host: "{{ hostvars['casino_database'].ansible_host }}"
+    login_user: "admin"
+    login_password: "Developer2@23"
+  delegate_to: localhost
+  with_items: "{{ newclient }}"
+
+- name: Restaurar dump SQL no banco remoto
+  ansible.builtin.shell: |
+    mysql -u{{ item.database_user }} -p{{ item.database_password }} -h {{ hostvars['casino_database'].ansible_host }} {{ item.database }} < /home/robert/space_oracle/Ansible/roles/space/files/new_client/init.sql
+  delegate_to: localhost
+  with_items: "{{ newclient }}"
+
+#ediar o docker-compose em /home/ubuntu/cliente/docker-compose.yml
+
+- name: iniciar compose
+  ansible.builtin.shell: |
+    docker stack deploy -c /home/ubuntu/{{item.client}}/docker-compose.yml {{item.client}}
+  with_items: "{{ newclient }}"
+
+

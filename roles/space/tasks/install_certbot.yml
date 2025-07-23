@@ -1,0 +1,14 @@
+- name: Instalar Certbot e plugin do apache2
+  ansible.builtin.apt:
+    name:
+      - certbot
+      - python3-certbot-apache
+    state: present
+    update_cache: yes
+  tags: install_certificate
+
+- name: Solicitar certificado SSL com Certbot
+  command: 
+    certbot --apache --non-interactive --agree-tos --email seu-email@dominio.com -d {{item.http_host}} -d www.{{item.http_host}}
+  with_items: "{{ sites }}"
+  tags: install_certificate

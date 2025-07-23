@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  teddypix:
+    image: 10.0.175.230:5000/teddypix-app:0.0.7
+    networks:
+      - ingress
+      - backend
+    deploy:
+      replicas: 5
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.teddypix.rule: "Host(`teddypix.bet`)"
+        traefik.http.routers.teddypix.entrypoints: "websecure" #web ou websecure
+        traefik.http.routers.teddypix.tls: "true" #true ou false
+        traefik.http.services.teddypix.loadbalancer.server.port: "80"
+    environment:
+      DB_HOST: teddypix_db
+      DB_DATABASE: database
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
+  teddypix_db:
+    image: 10.0.175.230:5000/teddypix-db:0.0.2
+    environment:
+      MYSQL_DATABASE: database
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - teddypix_db_data:/var/lib/mysql
+    networks:
+      - backend
+    deploy:
+      placement:
+        constraints:
+          - node.role == worker
+
+volumes:
+  teddypix_db_data:
+
+networks:
+  ingress:
+    external: true
+    name: ingress-routing
+  backend:
+    driver: overlay
+
+~                             

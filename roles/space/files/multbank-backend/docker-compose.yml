@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  multbank-backend:
+    image: 10.0.15.184:5000/{{item.project}}:{{item.image_version}}
+    networks:
+      - ingress
+      - backend
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.role == worker
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.multbank.rule: "Host(`api.multbank.app`)"
+        traefik.http.routers.multbank.entrypoints: "websecure"
+        traefik.http.routers.multbank.tls: "true"
+        traefik.http.routers.multbank.priority: 10
+        traefik.http.routers.multbank.service: "multbank"
+        traefik.http.services.multbank.loadbalancer.server.port: "3000"
+        traefik.http.services.multbank.loadbalancer.sticky.cookie: "true"
+        traefik.docker.network: "ingress-routing"
+        # Middleware para redirecionamento de HTTP para HTTPS
+        traefik.http.middlewares.https-redirect.redirectscheme.scheme: "https"
+
+        # Redirecionamento automático do router HTTP
+        traefik.http.routers.multbank-redirect.rule: "Host(`api.multbank.app`)"
+        traefik.http.routers.multbank-redirect.entrypoints: "web"
+        traefik.http.routers.multbank-redirect.middlewares: "https-redirect"
+        traefik.http.routers.multbank-redirect.priority: 1
+
+    # Volume opcional: só inclua se o código estiver atualizado nesse caminho
+    # volumes:
+    #   - /mnt/multbank-backend/app:/app/dist
+
+volumes:
+  teddypix_storage:
+  session_data:
+
+networks:
+  ingress:
+    external: true
+    name: ingress-routing
+  backend:
+    driver: overlay
+
